@@ -19,9 +19,9 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/users/', include('quiz.apps.users.urls')),
-    path('api/quizzes/', include('quiz.apps.quizzes.urls')),
-    path('api/common/', include('quiz.apps.common.urls')),
-    path('api/rankings/', include('quiz.apps.rankings.urls')),
-    path('api/submissions/', include('quiz.apps.submissions.urls')),
+    path('auth/', include('quiz.apps.users.urls')),
+    path('quizzes/', include('quiz.apps.quizzes.urls')),
+    path('common/', include('quiz.apps.common.urls')),
+    path('rankings/', include('quiz.apps.rankings.urls')),
+    path('submissions/', include('quiz.apps.submissions.urls')),
 ]
