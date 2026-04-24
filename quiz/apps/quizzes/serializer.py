@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Choice, Question, Quiz
+from .models import Choice, Question, Quiz, Comment
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
@@ -97,3 +97,33 @@ class QuizWriteSerializer(serializers.ModelSerializer):
 
         return instance
 
+class CommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source="author.name", read_only=True)
+    replies = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = (
+            "id",
+            "quiz",
+            "author",
+            "author_name",
+            "parent",
+            "content",
+            "replies",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "quiz",
+            "author",
+            "author_name",
+            "replies",
+            "created_at",
+            "updated_at",
+        )
+
+    def get_replies(self, obj):
+        child_comments = obj.replies.select_related("author").all()
+        return CommentSerializer(child_comments, many=True).data

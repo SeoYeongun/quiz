@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 class Quiz(models.Model):
@@ -64,3 +65,32 @@ class Choice(models.Model):
 
     def __str__(self):
         return f"[{self.question_id}] {self.text}"
+
+class Comment(models.Model):
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name="comments",
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="quiz_comments",
+    )
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="replies",
+    )
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "quiz_comments"
+        ordering = ["quiz_id", "created_at", "id"]
+
+    def __str__(self):
+        return f"[{self.quiz_id}] {self.author_id}: {self.content[:20]}"

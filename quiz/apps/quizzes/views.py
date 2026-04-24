@@ -3,8 +3,8 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Quiz
-from .serializer import QuizSerializer, QuizWriteSerializer
+from .models import Quiz, Comment
+from .serializer import QuizSerializer, QuizWriteSerializer, CommentSerializer
 
 
 class QuizListCreateView(APIView):
@@ -57,3 +57,33 @@ class QuizDetailView(APIView):
         quiz = self.get_object(quiz_id)
         quiz.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class CommentView(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get(self, request, quiz_id):
+        quiz = get_object_or_404(Quiz, id=quiz_id)
+        comments = (
+            Comment.objects.select_related("author")
+            .filter(quiz=quiz, parent__isnull=True)
+            .prefetch_related("replies__author")
+            .order_by("created_at", "id")
+        )
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, quiz_id):
+        quiz = get_object_or_404(Quiz, id=quiz_id)
+        serializer = CommentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        parent = serializer.validated_data.get("parent")
+        if parent and parent.quiz_id != quiz.id:
+            return Response(
+                {"detail": "부모 댓글이 현재 퀴즈에 속하지 않습니다."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        comment = serializer.save(quiz=quiz, author=request.user)
+        response_serializer = CommentSerializer(comment)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
