@@ -15,7 +15,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
-        serializer.save()
+        serializer.save(user=self.request.user)
 
 
 class ChoiceViewSet(viewsets.ModelViewSet):
