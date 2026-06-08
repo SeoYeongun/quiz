@@ -15,6 +15,10 @@ from quiz.apps.users.serializers import (
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    
+    def perform_create(self, serializer):
+        # 생성할 때 현재 로그인한 유저 정보를 강제로 바인딩합니다.
+        serializer.save(user=self.request.user)
 
 
 class RegisterView(APIView):

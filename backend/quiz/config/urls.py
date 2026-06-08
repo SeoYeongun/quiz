@@ -22,6 +22,9 @@ urlpatterns = [
 
     # likes
     path('api/likes/', include('quiz.apps.likes.urls')),
+
+    # rankings
+    path('api/rankings/', include('quiz.apps.rankings.urls')),
 ]
 
 # media
