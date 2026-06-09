@@ -6,11 +6,13 @@ class Quiz(models.Model):
     """퀴즈 게시글 (포스트)."""
 
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='quizzes',
-        verbose_name='작성자',
-    )
+    settings.AUTH_USER_MODEL,
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='quizzes',
+    verbose_name='작성자',
+)
     title = models.CharField('제목', max_length=200)
     description = models.TextField('설명', blank=True)
     is_published = models.BooleanField('공개', default=True)

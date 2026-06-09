@@ -2,6 +2,42 @@ from rest_framework import serializers
 from quiz.apps.quizzes.models import Quiz, Question, Choice
 
 
+class QuizSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Quiz
+        fields = (
+            'id',
+            'author',
+            'title',
+            'description',
+            'is_published',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = ('id', 'author', 'created_at', 'updated_at')
+
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+
+        if request and request.user.is_authenticated:
+            validated_data['author'] = request.user
+        else:
+            validated_data['author'] = None
+
+        return Quiz.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        instance.is_published = validated_data.get('is_published', instance.is_published)
+        instance.save()
+        return instance
+    
+    def delete(self, instance):
+        instance.delete()
+
 class ChoiceSerializer(serializers.ModelSerializer):
 
     class Meta:
