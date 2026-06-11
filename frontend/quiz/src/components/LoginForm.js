@@ -1,50 +1,52 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from 'axios';  // 🔥 필수
+
 
 const LoginForm = () => {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState('');  // 🔥 여기 있어야 함
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [token, setToken] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:8000/api/users/login/', {
-        username,
-        password,
-      });
 
-      const { token } = response.data;
-      setToken(token);
-      // 토큰 저장 (보안상 주의 필요)
-      localStorage.setItem('token', token);
+    try {
+      const response = await axios.post(
+        'http://localhost:8000/api/users/login/',
+        {
+          username,   // 🔥 state에서 가져오는 값
+          password,
+        }
+      );
+
+      console.log("LOGIN RESPONSE:", response.data);
+
+      localStorage.setItem('access', response.data.token);
+      
       alert('로그인 성공!');
-    } catch (err) {
-      setError('아이디 또는 비밀번호가 잘못되었습니다.');
-    }
+
+      } catch (err) {
+        console.log(err);
+        alert('로그인 실패!');
+      }
   };
 
   return (
-    <div>
-      <h2>로그인</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="아이디"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="비밀번호"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">로그인</button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </div>
+    <form onSubmit={handleSubmit}>
+      <input
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="username"
+      />
+
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="password"
+      />
+
+      <button type="submit">로그인</button>
+    </form>
   );
 };
 
