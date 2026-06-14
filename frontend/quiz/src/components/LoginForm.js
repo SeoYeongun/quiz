@@ -1,52 +1,66 @@
-import React, { useState } from 'react';
-import axios from 'axios';  // 🔥 필수
-
+import React, { useState } from "react";
 
 const LoginForm = () => {
-  const [username, setUsername] = useState('');  // 🔥 여기 있어야 함
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const response = await axios.post(
-        'http://localhost:8000/api/users/login/',
-        {
-          username,   // 🔥 state에서 가져오는 값
-          password,
-        }
-      );
+    const res = await fetch("http://localhost:8000/api/users/login/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    });
 
-      console.log("LOGIN RESPONSE:", response.data);
+    const data = await res.json();
 
-      localStorage.setItem('access', response.data.token);
-      
-      alert('로그인 성공!');
+    console.log("LOGIN:", data);
 
-      } catch (err) {
-        console.log(err);
-        alert('로그인 실패!');
-      }
+    // =========================
+    // 로그인 성공 처리
+    // =========================
+    if (data.access) {
+      // 🔥 여기 핵심 (무조건 LoginForm.js)
+      localStorage.setItem("access", data.access);
+      localStorage.setItem("refresh", data.refresh);
+
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // 로그인 후 이동
+      window.location.href = "/quizzes";
+    } else {
+      alert("로그인 실패");
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="username"
-      />
+    <div>
+      <h2>Login</h2>
 
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="password"
-      />
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
 
-      <button type="submit">로그인</button>
-    </form>
+        <input
+          type="password"
+          placeholder="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button type="submit">로그인</button>
+      </form>
+    </div>
   );
 };
 

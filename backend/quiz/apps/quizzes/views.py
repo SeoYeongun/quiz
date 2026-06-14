@@ -11,14 +11,12 @@ from quiz.apps.quizzes.serializers import (
 )
 
 class QuizViewSet(viewsets.ModelViewSet):
-
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
 class QuestionViewSet(viewsets.ModelViewSet):
 
     queryset = Question.objects.all()

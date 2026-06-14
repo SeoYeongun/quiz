@@ -1,75 +1,97 @@
 from rest_framework import status
-from rest_framework.authtoken.models import Token
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import authenticate, login, logout
+
+from django.contrib.auth import authenticate
+
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from quiz.apps.users.models import User
 from quiz.apps.users.serializers import (
-    LoginSerializer,
     RegisterSerializer,
     UserSerializer,
 )
 
 
+# =========================
+# USER INFO
+# =========================
 class UserView(APIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-class RegisterView(APIView):
-    """회원가입 → 토큰 발급 (가입 후 자동 로그인)."""
 
+# =========================
+# REGISTER
+# =========================
+class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        token, _ = Token.objects.get_or_create(user=user)
+
+        # JWT 발급
+        refresh = RefreshToken.for_user(user)
+
         return Response(
             {
-                'token': token.key,
-                'user': UserSerializer(user).data,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "user": UserSerializer(user).data,
             },
             status=status.HTTP_201_CREATED,
         )
 
 
+# =========================
+# LOGIN (JWT)
+# =========================
 class LoginView(APIView):
-    """username + password 로그인 → 토큰 발급."""
-    serializer_class = LoginSerializer
     permission_classes = [AllowAny]
 
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
+        username = request.data.get("username")
+        password = request.data.get("password")
 
         user = authenticate(username=username, password=password)
-        if user is not None:
-            login(request, user)  # Django 세션에 저장
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, _ = Token.objects.get_or_create(user=user)
+
+        if user is None:
+            return Response(
+                {"detail": "Invalid credentials"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # JWT 발급
+        refresh = RefreshToken.for_user(user)
+
         return Response(
             {
-                'token': token.key,
-                'user': UserSerializer(user).data,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "user": UserSerializer(user).data,
             },
             status=status.HTTP_200_OK,
         )
-    
+
+
+# =========================
+# LOGOUT (JWT 방식)
+# =========================
 class LogoutView(APIView):
-    """로그아웃 → 토큰 삭제."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        logout(request)
-        return Response({'detail': 'Logged out successfully'})
+        """
+        JWT는 서버 로그아웃이 아니라 refresh token blacklist 방식 사용 가능
+        (지금은 프론트 삭제 방식)
+        """
+        return Response(
+            {"detail": "Logged out (client-side token removed)"},
+            status=status.HTTP_200_OK,
+        )
