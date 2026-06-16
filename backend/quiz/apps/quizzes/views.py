@@ -1,37 +1,40 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
-
-from quiz.apps.quizzes.models import Question, Choice, Quiz
-from quiz.apps.quizzes.serializers import (
+from .models import Question, QuestionAttempt
+from .serializers import (
     QuestionSerializer,
-    ChoiceSerializer,
-    QuizSerializer
+    AnswerSerializer,
+    QuestionAttemptSerializer
 )
 
-class QuizViewSet(viewsets.ModelViewSet):
-    queryset = Quiz.objects.all()
-    serializer_class = QuizSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
 class QuestionViewSet(viewsets.ModelViewSet):
-
-    queryset = Question.objects.all()
+    queryset = Question.objects.all().order_by('-id')
     serializer_class = QuestionSerializer
     permission_classes = [AllowAny]
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    authentication_classes = []
 
 
-class ChoiceViewSet(viewsets.ModelViewSet):
+class SubmitAnswerAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    queryset = Choice.objects.all()
-    serializer_class = ChoiceSerializer
-    permission_classes = [AllowAny]
+    def post(self, request, pk):
+        question = Question.objects.get(pk=pk)
 
-    def perform_create(self, serializer):
-        serializer.save()
+        serializer = AnswerSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        selected = serializer.validated_data['selected_answer']
+        is_correct = (question.correct_answer == selected)
+
+        attempt = QuestionAttempt.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            question=question,
+            selected_answer=selected,
+            is_correct=is_correct
+        )
+
+        return Response(QuestionAttemptSerializer(attempt).data)

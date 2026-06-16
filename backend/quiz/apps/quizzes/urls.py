@@ -1,28 +1,16 @@
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import (
-    QuestionViewSet,
-    ChoiceViewSet,
-    QuizViewSet
-)
+from .views import QuestionViewSet, SubmitAnswerAPIView
 
 router = DefaultRouter()
+router.register(r'questions', QuestionViewSet, basename='question')
 
-router.register(
-    'quiz',
-    QuizViewSet,
-    basename='quiz'
-)
+urlpatterns = [
+    path('', include(router.urls)),
 
-router.register(
-    'questions',
-    QuestionViewSet,
-    basename='question'
-)
-
-router.register(
-    'choices',
-    ChoiceViewSet,
-    basename='choice'
-)
-
-urlpatterns = router.urls
+    # ✔️ 문제 풀이 API
+    path(
+        'questions/<int:pk>/answer/',
+        SubmitAnswerAPIView.as_view()
+    ),
+]

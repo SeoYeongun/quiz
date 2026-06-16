@@ -12,7 +12,7 @@ function ProfilePage() {
         'http://localhost:8000/api/users/me/',
         {
           headers: {
-            Authorization: `Token ${localStorage.getItem('access')}`
+            Authorization: `Bearer ${token}`,
           },
         }
       );

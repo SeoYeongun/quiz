@@ -1,51 +1,20 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import LoginForm from './components/LoginForm';
-import Quizzes from './components/Quizzes';
-import QuizDetail from './components/QuizDetail';
-
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('access');
-
-  // 🔥 디버그용
-  console.log("TOKEN:", token);
-
-  if (!token || token === 'undefined' || token === 'null') {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-};
+import QuestionList from "./components/QuestionList";
+import QuestionSolve from "./components/QuestionSolve";
+import ProfilePage from './components/ProfilePage';
+import SignupForm from './components/SignupForm';
+import { BrowserRouter } from 'react-router-dom';
 
 function App() {
   return (
     <Routes>
-
-      {/* 공개 */}
       <Route path="/login" element={<LoginForm />} />
-
-      {/* 보호 */}
-      <Route
-        path="/quizzes"
-        element={
-          <PrivateRoute>
-            <Quizzes />
-          </PrivateRoute>
-        }
-      />
-
-      <Route
-        path="/quizzes/:id"
-        element={
-          <PrivateRoute>
-            <QuizDetail />
-          </PrivateRoute>
-        }
-      />
-
-      {/* 기본 */}
-      <Route path="/" element={<Navigate to="/quizzes" replace />} />
-
+      <Route path="/signup" element={<SignupForm />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/quizzes" element={<QuestionList />} />
+      <Route path="/solve/:id" element={<QuestionSolve />} />
     </Routes>
   );
 }

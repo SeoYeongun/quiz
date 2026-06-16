@@ -1,12 +1,10 @@
 from rest_framework import serializers
 from quiz.apps.rankings.models import Ranking
-from quiz.apps.quizzes.models import Quiz
 
 # 1. ModelSerializer로 변경합니다.
 class RankingSerializer(serializers.ModelSerializer):
     
     # quiz 필드를 PrimaryKeyRelatedField로 설정하면 웹 폼에 퀴즈 목록이 드롭다운으로 뜹니다.
-    quiz = serializers.PrimaryKeyRelatedField(queryset=Quiz.objects.all())
     score = serializers.IntegerField(min_value=0)
 
     class Meta:

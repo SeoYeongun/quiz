@@ -2,15 +2,16 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.auth import authenticate, login
 
 from django.contrib.auth import authenticate
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from quiz.apps.users.models import User
 from quiz.apps.users.serializers import (
     RegisterSerializer,
     UserSerializer,
+    LoginSerializer
 )
 
 
@@ -52,14 +53,19 @@ class RegisterView(APIView):
 # =========================
 # LOGIN (JWT)
 # =========================
+
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    serializer_class = LoginSerializer
 
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
 
-        user = authenticate(username=username, password=password)
+        user = authenticate(
+            username=username,
+            password=password
+        )
 
         if user is None:
             return Response(
@@ -67,7 +73,9 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # JWT 발급
+        # 세션 로그인
+        login(request, user)
+
         refresh = RefreshToken.for_user(user)
 
         return Response(
@@ -75,11 +83,8 @@ class LoginView(APIView):
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
                 "user": UserSerializer(user).data,
-            },
-            status=status.HTTP_200_OK,
+            }
         )
-
-
 # =========================
 # LOGOUT (JWT 방식)
 # =========================

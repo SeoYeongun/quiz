@@ -1,13 +1,11 @@
 from django.db import models
 from django.utils import timezone
 from quiz.apps.users.models import User
-from quiz.apps.quizzes.models import Quiz
 
 
 class Comment(models.Model):
     text = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 

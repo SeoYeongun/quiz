@@ -1,60 +1,52 @@
 from rest_framework import serializers
-from .models import Quiz, Question, Choice
-
-
-class ChoiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Choice
-        fields = ["id", "text", "is_correct", "order"]
+from .models import Question, QuestionAttempt
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-    choices = ChoiceSerializer(many=True, required=False)
-
     class Meta:
         model = Question
         fields = [
-            "id",
-            "text",
-            "answer_type",
-            "correct_answer",
-            "order",
-            "choices",
+            'id',
+            'title',
+            'question_text',
+            'choice1',
+            'choice2',
+            'choice3',
+            'choice4',
+            'correct_answer',
+            'created_at',
         ]
 
 
-class QuizSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True, required=False)
+class AnswerSerializer(serializers.Serializer):
+    selected_answer = serializers.IntegerField()
 
+
+class QuestionAttemptSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Quiz
+        model = QuestionAttempt
         fields = [
-            "id",
-            "title",
-            "description",
-            "is_published",
-            "questions",
+            'id',
+            'user',
+            'question',
+            'selected_answer',
+            'is_correct',
+            'created_at',
         ]
+        read_only_fields = ['user', 'is_correct', 'created_at']
 
-    def create(self, validated_data):
-        questions_data = validated_data.pop("questions", [])
+class QuestionAttemptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuestionAttempt
+        fields = [
+            'id',
+            'user',
+            'question',
+            'selected_answer',
+            'is_correct',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'user', 'is_correct', 'created_at']
 
-        quiz = Quiz.objects.create(**validated_data)
-
-        for q_index, q_data in enumerate(questions_data):
-            choices_data = q_data.pop("choices", [])
-
-            question = Question.objects.create(
-                quiz=quiz,
-                order=q_index,
-                **q_data
-            )
-
-            for c_index, c_data in enumerate(choices_data):
-                Choice.objects.create(
-                    question=question,
-                    order=c_index,
-                    **c_data
-                )
-
-        return quiz
+class AnswerSerializer(serializers.Serializer):
+    selected_answer = serializers.IntegerField()
