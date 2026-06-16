@@ -34,19 +34,3 @@ class QuestionAttemptSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['user', 'is_correct', 'created_at']
-
-class QuestionAttemptSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = QuestionAttempt
-        fields = [
-            'id',
-            'user',
-            'question',
-            'selected_answer',
-            'is_correct',
-            'created_at',
-        ]
-        read_only_fields = ['id', 'user', 'is_correct', 'created_at']
-
-class AnswerSerializer(serializers.Serializer):
-    selected_answer = serializers.IntegerField()
