@@ -34,7 +34,7 @@ class RankingSerializer(serializers.ModelSerializer):
         
         # update_or_create는 (객체, 생성여부[True/False]) 튜플을 반환하므로 
         # DRF에서는 객체(instance)만 리턴해야 에러가 나지 않습니다.
-        ranking, created = Ranking.objects.update_or_create(
+        ranking= Ranking.objects.all(
             quiz=quiz,
             user=user,
             defaults={'score': score},
