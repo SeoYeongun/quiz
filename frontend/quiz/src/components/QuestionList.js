@@ -32,7 +32,9 @@ const QuestionList = () => {
   return (
     <div>
       <h2>문제 목록</h2>
-
+      <button onClick={() => navigate("/questions")}>
+        문제 만들기
+      </button>
       {questions.map((q) => (
         <div key={q.id} style={{ border: "1px solid #ddd", margin: 10, padding: 10 }}>
           <h3>{q.title}</h3>

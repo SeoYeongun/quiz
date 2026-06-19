@@ -1,8 +1,10 @@
-from ntpath import basename
-from rest_framework.routers import DefaultRouter
-from .views import CommentViewSet
+from django.urls import path
+from .views import CommentListCreateAPIView
 
-router = DefaultRouter()
-router.register('comments', CommentViewSet, basename='comments')
-
-urlpatterns = router.urls
+urlpatterns = [
+    path(
+        "questions/<int:pk>/comments/",
+        CommentListCreateAPIView.as_view(),
+        name="comment-list-create",
+    ),
+]

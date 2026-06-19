@@ -18,7 +18,6 @@ urlpatterns = [
     path('api/submissions/', include('quiz.apps.subimissions.urls')),
 
     # comments
-    path('api/comments/', include('quiz.apps.comments.urls')),
 
     # likes
     path('api/likes/', include('quiz.apps.likes.urls')),

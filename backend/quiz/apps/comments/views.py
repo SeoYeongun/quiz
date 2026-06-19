@@ -1,32 +1,43 @@
-from rest_framework import viewsets
-from rest_framework.exceptions import PermissionDenied
-from .models import Comment
+from rest_framework import status, generics
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
 from .serializers import CommentSerializer
+from quiz.apps.quizzes.models import Question
+from .models import Comment
 
 
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
+# ---------------------------------
+# 댓글 리스트 + 생성
+# /api/quizzes/questions/<pk>/comments/
+# ---------------------------------
+class CommentListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
-    http_method_names = ['get', 'post', 'put', 'patch', 'delete']
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsAuthenticated()]
+        return [AllowAny()]
 
     def get_queryset(self):
-        # Filter comments by quiz if specified in query parameters
-        quiz_id = self.request.query_params.get('quiz')
-        if quiz_id:
-            return Comment.objects.filter(quiz_id=quiz_id)
-        return super().get_queryset()
-    
+        question_id = self.kwargs.get("pk")
+        return Comment.objects.filter(question_id=question_id).order_by("-created_at")
+
     def perform_create(self, serializer):
-        # Set the author to the current user and quiz to the specified quiz
-        quiz_id = self.request.data.get('quiz')
-        serializer.save(author=self.request.user, quiz_id=quiz_id)
+        question_id = self.kwargs.get("pk")
+        question = Question.objects.get(pk=question_id)
 
-    def perform_update(self, serializer):
-        # Ensure that the author cannot be changed on update
-        serializer.save(author=self.get_object().author)
+        serializer.save(
+            author=self.request.user,
+            question=question
+        )
 
-    def perform_destroy(self, instance):
-        # Ensure that only the author can delete their comment
-        if instance.author != self.request.user:
-            raise PermissionDenied("You do not have permission to delete this comment.")
-        instance.delete()
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+
+        except Exception as e:
+            print("COMMENT CREATE ERROR:", str(e))
+            return Response(
+                {"error": "댓글 생성 실패"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

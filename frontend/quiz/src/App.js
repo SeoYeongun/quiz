@@ -5,6 +5,7 @@ import QuestionList from "./components/QuestionList";
 import QuestionSolve from "./components/QuestionSolve";
 import ProfilePage from './components/ProfilePage';
 import SignupForm from './components/SignupForm';
+import QuestionCreate from './components/QuestionCreate';
 import { BrowserRouter } from 'react-router-dom';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/quizzes" element={<QuestionList />} />
       <Route path="/solve/:id" element={<QuestionSolve />} />
+      <Route path="/questions" element={<QuestionCreate />} />
     </Routes>
   );
 }

@@ -1,9 +1,15 @@
 from django.db import models
 from django.utils import timezone
 from quiz.apps.users.models import User
+from quiz.apps.quizzes.models import Question
 
 
 class Comment(models.Model):
+    question = models.ForeignKey(
+    Question,
+    on_delete=models.CASCADE,
+    related_name="comments",
+)
     text = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
