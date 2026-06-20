@@ -58,32 +58,20 @@ const QuizDetail = () => {
     }
 
     const token = getToken();
-
-    if (!token) {
-      alert("로그인이 필요합니다");
-      return;
-    }
+    const config = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
 
     try {
       const res = await axios.post(
         `http://localhost:8000/api/quizzes/questions/${id}/answer/`,
-        {
-          selected_answer: Number(selected),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { selected_answer: Number(selected) },
+        config
       );
 
       setResult(res.data);
     } catch (err) {
       console.log("answer error:", err);
-
-      if (err.response?.status === 401) {
-        alert("인증 실패 (로그인 다시 필요)");
-      }
     }
   };
 
@@ -94,9 +82,8 @@ const QuizDetail = () => {
     if (!text.trim()) return;
 
     const token = getToken();
-
     if (!token) {
-      alert("로그인이 필요합니다");
+      alert("댓글 작성은 로그인이 필요합니다");
       return;
     }
 
@@ -104,17 +91,16 @@ const QuizDetail = () => {
       await axios.post(
         `http://localhost:8000/api/quizzes/questions/${id}/comments/`,
         { text },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setText("");
       fetchComments();
     } catch (err) {
       console.log("comment error:", err);
+      if (err.response?.status === 401) {
+        alert("로그인이 필요합니다");
+      }
     }
   };
 

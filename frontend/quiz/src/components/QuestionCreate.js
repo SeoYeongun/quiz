@@ -25,35 +25,37 @@ const Questions = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log("ACCESS TOKEN:", localStorage.getItem("access"));
+  const token = localStorage.getItem("access");
 
-    const token = localStorage.getItem("access");
-
-    try {
-      await axios.post(
-        "http://localhost:8000/api/quizzes/questions/",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      alert("문제가 등록되었습니다.");
-
-      navigate("/questions");
-    } catch (err) {
-      console.error(err);
-
-      if (err.response) {
-        console.log(err.response.data);
+  try {
+    const res = await axios.post(
+      "http://localhost:8000/api/quizzes/questions/",
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
+    );
 
-      alert("등록 실패");
+    alert("문제가 등록되었습니다.");
+
+    // 생성된 게시글의 상세 페이지로 이동
+    navigate(`/solve/${res.data.id}`);
+
+  } catch (err) {
+    console.error(err);
+
+    if (err.response) {
+      console.log(err.response.data);
     }
-  };
+
+    alert("등록 실패");
+  }
+};
 
   return (
     <div

@@ -9,6 +9,7 @@ from .serializers import (
     AnswerSerializer,
     QuestionAttemptSerializer,
 )
+
 from quiz.apps.comments.models import Comment
 from quiz.apps.comments.serializers import CommentSerializer
 
@@ -16,16 +17,24 @@ from quiz.apps.comments.serializers import CommentSerializer
 class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all().order_by("-id")
     serializer_class = QuestionSerializer
-    permission_classes = [AllowAny]
 
     # -----------------------------
-    # 정답 제출
-    # POST /api/quizzes/questions/<id>/answer/
+    # 권한 제어 (핵심)
     # -----------------------------
-    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def get_permissions(self):
+        if self.action == "answer":
+            return [AllowAny()]
+        if self.action == "comments" and self.request.method == "POST":
+            return [IsAuthenticated()]
+        if self.request.method == "POST":
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    # -----------------------------
+    # 정답 제출 (비로그인 허용)
+    # -----------------------------
+    @action(detail=True, methods=["post"], permission_classes=[AllowAny])
     def answer(self, request, pk=None):
-
-        print("🔥 ANSWER API HIT")  # 디버깅용
 
         question = self.get_object()
 
@@ -33,14 +42,12 @@ class QuestionViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         selected = serializer.validated_data["selected_answer"]
-
-        print("SELECTED:", selected)
-        print("CORRECT:", question.correct_answer)
-
         is_correct = question.correct_answer == selected
 
+        user = request.user if request.user.is_authenticated else None
+
         attempt = QuestionAttempt.objects.create(
-            user=request.user,
+            user=user,
             question=question,
             selected_answer=selected,
             is_correct=is_correct,
@@ -53,33 +60,21 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
     # -----------------------------
     # 댓글 조회 / 작성
-    # GET / POST /api/quizzes/questions/<id>/comments/
     # -----------------------------
-    @action(detail=True, methods=["get", "post"], permission_classes=[AllowAny])
+    @action(detail=True, methods=["get", "post"])
     def comments(self, request, pk=None):
 
         question = self.get_object()
 
-        # GET
         if request.method == "GET":
             comments = Comment.objects.filter(question=question).order_by("-created_at")
             serializer = CommentSerializer(comments, many=True)
             return Response(serializer.data)
 
-        # POST
-        if not request.user.is_authenticated:
-            return Response(
-                {"detail": "로그인이 필요합니다."},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-
         serializer = CommentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        comment = serializer.save(
-            author=request.user,
-            question=question,
-        )
+        comment = serializer.save(author=request.user, question=question)
 
         return Response(
             CommentSerializer(comment).data,

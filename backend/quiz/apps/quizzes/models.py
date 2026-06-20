@@ -23,7 +23,7 @@ class Question(models.Model):
 
 
 class QuestionAttempt(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
 
     selected_answer = models.IntegerField()
