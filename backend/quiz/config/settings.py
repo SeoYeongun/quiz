@@ -168,6 +168,7 @@ REST_FRAMEWORK = {
     # ✔ JWT만 사용 (중요)
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'quiz.config.authentication.OptionalJWTAuthentication',
+        "rest_framework.authentication.SessionAuthentication",
     ],
 
     # ✔ 기본은 공개 API

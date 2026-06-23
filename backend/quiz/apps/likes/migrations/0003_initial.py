@@ -10,19 +10,18 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ('likes', '0002_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('quizzes', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='questionattempt',
+            model_name='like',
             name='user',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
-        migrations.AddField(
-            model_name='question',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+        migrations.AlterUniqueTogether(
+            name='like',
+            unique_together={('user', 'quiz')},
         ),
     ]

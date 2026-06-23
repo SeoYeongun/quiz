@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+
 
 const QuizDetail = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
-
+  const [liked, setLiked] = useState(false);
   const [question, setQuestion] = useState(null);
   const [comments, setComments] = useState([]);
   const [text, setText] = useState("");
@@ -19,6 +21,58 @@ const QuizDetail = () => {
     const token = localStorage.getItem("access");
     return token ? token : null;
   };
+
+
+  const handleLike = async () => {
+    const token = localStorage.getItem("access");
+
+    try {
+      const res = await axios.post(
+        `http://localhost:8000/api/quizzes/questions/${id}/like/`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setLiked(res.data.liked); // 상태 반영
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const deleteQuestion = async (id) => {
+    const ok = window.confirm("정말 삭제하시겠습니까?");
+
+    if (!ok) return;
+
+    try {
+      await axios.delete(
+        `http://localhost:8000/api/quizzes/questions/${id}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access")}`,
+          },
+        }
+      );
+
+      alert("삭제되었습니다.");
+      navigate("/quizzes");
+
+      // 또는 상세페이지라면
+      // navigate("/questions");
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.status === 403) {
+        alert("본인이 작성한 게시글만 삭제할 수 있습니다.");
+      } else {
+        alert("삭제에 실패했습니다.");
+      }
+    }
+};
 
   // -----------------------------
   // 문제 가져오기
@@ -146,6 +200,10 @@ const QuizDetail = () => {
         정답 제출
       </button>
 
+      <button onClick={() => deleteQuestion(question.id)}>
+        게시글 삭제
+      </button>
+
       {/* 결과 */}
       {result && (
         <div>
@@ -158,7 +216,9 @@ const QuizDetail = () => {
           )}
         </div>
       )}
-
+      <button onClick={handleLike}>
+        {liked ? "❤️ 좋아요 완료" : "🤍 좋아요"}
+      </button>
       <hr />
 
       {/* 댓글 */}

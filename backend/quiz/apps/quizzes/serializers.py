@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from .models import Question, QuestionAttempt
+from quiz.apps.likes.models import Like
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    like_count = serializers.SerializerMethodField()
     class Meta:
         model = Question
         fields = [
@@ -15,8 +17,10 @@ class QuestionSerializer(serializers.ModelSerializer):
             'choice4',
             'correct_answer',
             'created_at',
+            "like_count",
         ]
-
+    def get_like_count(self, obj):
+        return Like.objects.filter(quiz=obj).count()
 
 class AnswerSerializer(serializers.Serializer):
     selected_answer = serializers.IntegerField()

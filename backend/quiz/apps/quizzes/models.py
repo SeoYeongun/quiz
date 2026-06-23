@@ -5,6 +5,10 @@ User = get_user_model()
 
 
 class Question(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
     title = models.CharField(max_length=200)
 
     question_text = models.TextField()

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import api from "./api";
+import axios from "axios";
+import api from "../hooks/axios";
 import { useNavigate } from "react-router-dom";
 
 const QuestionList = () => {
@@ -11,7 +12,7 @@ const QuestionList = () => {
   // -----------------------------
   const fetchQuestions = async () => {
     try {
-      const res = await api.get("quizzes/questions/");
+      const res = await axios.get("http://localhost:8000/api/quizzes/questions/");
       setQuestions(res.data);
     } catch (err) {
       console.log("Question list error:", err);
@@ -22,6 +23,38 @@ const QuestionList = () => {
     }
   };
 
+  const deleteQuestion = async (id) => {
+  const ok = window.confirm("정말 삭제하시겠습니까?");
+
+  if (!ok) return;
+
+  try {
+    await axios.delete(
+      `http://localhost:8000/api/quizzes/questions/${id}/`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access")}`,
+        },
+      }
+    );
+
+    alert("삭제되었습니다.");
+
+    // 목록 새로 불러오기
+    fetchQuestions();
+
+    // 또는 상세페이지라면
+    // navigate("/questions");
+  } catch (err) {
+    console.error(err);
+
+    if (err.response?.status === 403) {
+      alert("본인이 작성한 게시글만 삭제할 수 있습니다.");
+    } else {
+      alert("삭제에 실패했습니다.");
+    }
+  }
+};
   // -----------------------------
   // 초기 로딩
   // -----------------------------
@@ -71,6 +104,7 @@ const QuestionList = () => {
           >
             <h3>{q.title}</h3>
             <p>{q.question_text}</p>
+            <p>❤️ {q.like_count} likes</p>
           </div>
         ))
       )}
