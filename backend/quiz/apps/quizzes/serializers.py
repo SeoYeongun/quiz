@@ -5,22 +5,37 @@ from quiz.apps.likes.models import Like
 
 class QuestionSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
+    liked = serializers.SerializerMethodField()
+
     class Meta:
         model = Question
         fields = [
-            'id',
-            'title',
-            'question_text',
-            'choice1',
-            'choice2',
-            'choice3',
-            'choice4',
-            'correct_answer',
-            'created_at',
+            "id",
+            "title",
+            "question_text",
+            "choice1",
+            "choice2",
+            "choice3",
+            "choice4",
+            "correct_answer",
+            "created_at",
             "like_count",
+            "liked",
         ]
+
     def get_like_count(self, obj):
         return Like.objects.filter(quiz=obj).count()
+
+    def get_liked(self, obj):
+        request = self.context.get("request")
+
+        if request is None or request.user.is_anonymous:
+            return False
+
+        return Like.objects.filter(
+            quiz=obj,
+            user=request.user
+        ).exists()
 
 class AnswerSerializer(serializers.Serializer):
     selected_answer = serializers.IntegerField()

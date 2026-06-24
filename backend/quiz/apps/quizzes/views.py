@@ -42,6 +42,11 @@ class QuestionViewSet(viewsets.ModelViewSet):
     # 게시글 작성 시 작성자를 자동으로 설정하기 위해 perform_create 메서드를 오버라이드합니다. 이 메서드는 게시글이 생성될 때 호출되며, 현재 요청한 사용자를 작성자로 설정합니다.
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
     
     @action(detail=True, methods=["get", "post"], permission_classes=[IsAuthenticated])
     def like(self, request, pk=None):
@@ -90,22 +95,39 @@ class QuestionViewSet(viewsets.ModelViewSet):
     # -----------------------------
     # 댓글 조회 / 작성
     # -----------------------------
-    @action(detail=True, methods=["get", "post"])
+    @action(detail=True, methods=["get", "post", "delete"])
     def comments(self, request, pk=None):
 
         question = self.get_object()
 
+        # 댓글 목록
         if request.method == "GET":
             comments = Comment.objects.filter(question=question).order_by("-created_at")
             serializer = CommentSerializer(comments, many=True)
             return Response(serializer.data)
 
-        serializer = CommentSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        # 댓글 작성
+        if request.method == "POST":
+            serializer = CommentSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
 
-        comment = serializer.save(author=request.user, question=question)
+            comment = serializer.save(author=request.user, question=question)
 
-        return Response(
-            CommentSerializer(comment).data,
-            status=status.HTTP_201_CREATED,
-        )
+            return Response(CommentSerializer(comment).data, status=201)
+
+        # 댓글 삭제
+        if request.method == "DELETE":
+            comment_id = request.data.get("comment_id")
+
+            try:
+                comment = Comment.objects.get(id=comment_id, question=question)
+
+                # 본인만 삭제 가능
+                if comment.author != request.user:
+                    return Response({"error": "권한 없음"}, status=403)
+
+                comment.delete()
+                return Response({"success": True})
+
+            except Comment.DoesNotExist:
+                return Response({"error": "댓글 없음"}, status=404)
