@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Question, QuestionAttempt
+from .models import Question, QuestionAttempt, Report
 from quiz.apps.likes.models import Like
+
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -53,3 +54,9 @@ class QuestionAttemptSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['user', 'is_correct', 'created_at']
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = "__all__"
+        read_only_fields = ("user", "question")

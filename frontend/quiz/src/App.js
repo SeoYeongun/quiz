@@ -6,6 +6,7 @@ import QuestionSolve from "./components/QuestionSolve";
 import ProfilePage from './components/ProfilePage';
 import SignupForm from './components/SignupForm';
 import QuestionCreate from './components/QuestionCreate';
+import reportQuestion from './components/QuestionSolve';
 import { BrowserRouter } from 'react-router-dom';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
       <Route path="/quizzes" element={<QuestionList />} />
       <Route path="/solve/:id" element={<QuestionSolve />} />
       <Route path="/questions" element={<QuestionCreate />} />
+      <Route path="/solve/:id/reports" element={<reportQuestion />} />
     </Routes>
   );
 }

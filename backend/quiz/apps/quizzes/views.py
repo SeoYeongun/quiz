@@ -3,11 +3,12 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from .permissions import IsOwnerOrReadOnly
-from .models import Question, QuestionAttempt
+from .models import Question, QuestionAttempt, Report
 from .serializers import (
     QuestionSerializer,
     AnswerSerializer,
     QuestionAttemptSerializer,
+    ReportSerializer,
 )
 from quiz.apps.comments.models import Comment
 from quiz.apps.comments.serializers import CommentSerializer
@@ -131,3 +132,30 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
             except Comment.DoesNotExist:
                 return Response({"error": "댓글 없음"}, status=404)
+            
+    @action(detail=True, methods=["POST"])
+    def report(self, request, pk=None):
+
+        question = self.get_object()
+
+        if Report.objects.filter(
+            user=request.user,
+            question=question
+        ).exists():
+
+            return Response(
+                {"detail": "이미 신고한 게시글입니다."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = ReportSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(
+                user=request.user,
+                question=question
+            )
+
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=400)

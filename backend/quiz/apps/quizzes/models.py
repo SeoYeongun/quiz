@@ -34,3 +34,27 @@ class QuestionAttempt(models.Model):
     is_correct = models.BooleanField()
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+class Report(models.Model):
+    REPORT_TYPES = [
+        ("spam", "스팸"),
+        ("abuse", "욕설"),
+        ("adult", "음란물"),
+        ("fake", "허위정보"),
+        ("etc", "기타"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name="reports"
+    )
+
+    reason = models.CharField(max_length=20, choices=REPORT_TYPES)
+    description = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "question")

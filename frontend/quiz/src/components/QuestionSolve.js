@@ -44,6 +44,33 @@ const QuizDetail = () => {
     }
   };
 
+  //신고하기
+  const reportQuestion = async () => {
+    const token = localStorage.getItem("access");
+
+    try {
+      const res = await axios.post(
+        `http://localhost:8000/api/quizzes/questions/${id}/report/`,
+        {
+          reason: "spam",
+          description: "광고성 게시글입니다."
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      alert("신고되었습니다.");
+      console.log(res.data);
+    } catch (error) {
+      console.log(error.response);
+      console.log(error.response?.data);
+      alert(JSON.stringify(error.response?.data));
+    }
+  };
+
   // -----------------------------
   // 댓글 가져오기
   // -----------------------------
@@ -257,6 +284,12 @@ const QuizDetail = () => {
 
       <span>좋아요 {question.like_count}개</span>
 
+      <button
+        color="error"
+        onClick={reportQuestion}
+      >
+    🚨 신고하기
+      </button>
       <hr />
 
       {/* 댓글 작성 */}
