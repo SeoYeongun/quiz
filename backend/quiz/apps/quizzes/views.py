@@ -133,6 +133,10 @@ class QuestionViewSet(viewsets.ModelViewSet):
             except Comment.DoesNotExist:
                 return Response({"error": "댓글 없음"}, status=404)
             
+
+    # -----------------------------
+    # 신고 기능
+    # -----------------------------
     @action(detail=True, methods=["POST"])
     def report(self, request, pk=None):
 

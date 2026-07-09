@@ -162,6 +162,32 @@ const QuizDetail = () => {
     }
   };
 
+  const likeComment = async (commentId) => {
+      const token = localStorage.getItem("access");
+
+      const res = await axios.post(
+          `http://localhost:8000/api/quizzes/questions/${id}/comments/${commentId}/like/`,
+          {},
+          {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+              },
+          }
+      );
+
+      setComments((prev) =>
+          prev.map((comment) =>
+              comment.id === commentId
+                  ? {
+                        ...comment,
+                        liked: res.data.liked,
+                        like_count: res.data.like_count,
+                    }
+                  : comment
+          )
+      );
+  };
+
   // -----------------------------
   // 정답 제출
   // -----------------------------
@@ -305,13 +331,19 @@ const QuizDetail = () => {
 
       {/* 댓글 목록 */}
       {comments.map((c) => (
-        <div key={c.id}>
+        <div key={c.id} style={{ marginBottom: "15px" }}>
           <b>{c.author}</b>
           <p>{c.text}</p>
 
-          <button onClick={() => deleteComment(c.id)}>
-            삭제
-          </button>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button onClick={() => likeComment(c.id)}>
+              {c.liked ? "❤️" : "🤍"} {c.like_count}
+            </button>
+
+            <button onClick={() => deleteComment(c.id)}>
+              삭제
+            </button>
+          </div>
         </div>
       ))}
     </div>

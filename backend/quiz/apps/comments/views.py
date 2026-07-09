@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from .serializers import CommentSerializer
 from quiz.apps.quizzes.models import Question
 from .models import Comment
-
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 
 # ---------------------------------
 # 댓글 리스트 + 생성
@@ -41,3 +42,41 @@ class CommentListCreateAPIView(generics.ListCreateAPIView):
                 {"error": "댓글 생성 실패"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        
+class CommentLikeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk, comment_pk):
+        comment = get_object_or_404(
+            Comment,
+            pk=comment_pk,
+            question_id=pk
+        )
+
+        liked = comment.likes.filter(pk=request.user.pk).exists()
+        like_count = comment.likes.count()
+
+        return Response({
+            "liked": liked,
+            "like_count": like_count
+        })
+
+    def post(self, request, pk, comment_pk):
+
+        comment = get_object_or_404(
+            Comment,
+            pk=comment_pk,
+            question_id=pk
+        )
+
+        if comment.likes.filter(pk=request.user.pk).exists():
+            comment.likes.remove(request.user)
+            liked = False
+        else:
+            comment.likes.add(request.user)
+            liked = True
+
+        return Response({
+            "liked": liked,
+            "like_count": comment.likes.count()
+        })

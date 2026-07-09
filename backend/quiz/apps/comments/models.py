@@ -16,6 +16,15 @@ class Comment(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
+    likes = models.ManyToManyField(
+        User,
+        related_name="liked_comments",
+        blank=True
+    )
+
+    def like_count(self):
+        return self.likes.count()
+
     def __str__(self):
         return f"{self.author.username} - {self.text[:20]}"
 
@@ -23,3 +32,4 @@ class Comment(models.Model):
         verbose_name = 'Comment'
         verbose_name_plural = 'Comments'
         ordering = ['-created_at']
+        
