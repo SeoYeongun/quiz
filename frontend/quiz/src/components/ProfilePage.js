@@ -1,37 +1,71 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-function ProfilePage() {
-  const [user, setUser] = useState(null);
+function Profile() {
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem('access');
+    const [myQuestions, setMyQuestions] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-      const response = await axios.get(
-        'http://localhost:8000/api/users/me/',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    useEffect(() => {
+        const fetchMyQuestions = async () => {
+            const token = localStorage.getItem("access");
 
-      setUser(response.data);
-    };
+            try {
+                const res = await axios.get(
+                    "http://127.0.0.1:8000/api/quizzes/questions/my_questions/",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
 
-    fetchUser();
-  }, []);
+                setMyQuestions(res.data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  return (
-    <div>
-      {user ? (
-        <h1>{user.username}</h1>
-      ) : (
-        <p>로딩중...</p>
-      )}
-    </div>
-  );
+        fetchMyQuestions();
+    }, []);
+
+    if (loading) {
+        return <h2>불러오는 중...</h2>;
+    }
+
+    return (
+        <div className="container mt-4">
+            <h2>내가 작성한 게시글</h2>
+
+            {myQuestions.length === 0 ? (
+                <p>작성한 게시글이 없습니다.</p>
+            ) : (
+                myQuestions.map((question) => (
+                    <div
+                        key={question.id}
+                        className="card mb-3"
+                        style={{
+                            cursor: "pointer",
+                            border: "1px solid #ddd",
+                            borderRadius: "8px",
+                            padding: "15px",
+                            marginBottom: "10px",
+                        }}
+                        onClick={() => navigate(`/solve/${question.id}`)}
+                    >
+                        <div className="card-body">
+                            <h5>{question.title}</h5>
+                            <p>{question.question_text}</p>
+                        </div>
+                    </div>
+                ))
+            )}
+        </div>
+    );
 }
 
-export default ProfilePage;
+export default Profile;

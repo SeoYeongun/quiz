@@ -163,3 +163,13 @@ class QuestionViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         return Response(serializer.errors, status=400)
+    
+    
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    def my_questions(self, request):
+        questions = Question.objects.filter(
+            user=request.user
+        ).order_by("-created_at")
+
+        serializer = self.get_serializer(questions, many=True)
+        return Response(serializer.data)

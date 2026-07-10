@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import api from "../hooks/axios";
 import { useNavigate } from "react-router-dom";
 
 const QuestionList = () => {
-  const [questions, setQuestions] = useState([]);
   const navigate = useNavigate();
+
+  const [questions, setQuestions] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // -----------------------------
   // 문제 리스트 가져오기
   // -----------------------------
-  const fetchQuestions = async () => {
+  const fetchQuestions = async (pageNumber = 1) => {
     try {
-      const res = await axios.get("http://localhost:8000/api/quizzes/questions/");
-      setQuestions(res.data);
+      const res = await axios.get(
+        `http://localhost:8000/api/quizzes/questions/?page=${pageNumber}`
+      );
+
+      setQuestions(res.data.results);
+      setPage(pageNumber);
+      setTotalPages(Math.ceil(res.data.count / 20));
     } catch (err) {
       console.log("Question list error:", err);
 
@@ -23,43 +31,59 @@ const QuestionList = () => {
     }
   };
 
+  // -----------------------------
+  // 로그아웃
+  // -----------------------------
+  const logout = () => {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+
+    setIsLoggedIn(false);
+
+    alert("로그아웃되었습니다.");
+
+    navigate("/login");
+  };
+
+  // -----------------------------
+  // 게시글 삭제
+  // -----------------------------
   const deleteQuestion = async (id) => {
-  const ok = window.confirm("정말 삭제하시겠습니까?");
+    const ok = window.confirm("정말 삭제하시겠습니까?");
+    if (!ok) return;
 
-  if (!ok) return;
+    try {
+      await axios.delete(
+        `http://localhost:8000/api/quizzes/questions/${id}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access")}`,
+          },
+        }
+      );
 
-  try {
-    await axios.delete(
-      `http://localhost:8000/api/quizzes/questions/${id}/`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access")}`,
-        },
+      alert("삭제되었습니다.");
+
+      fetchQuestions(page);
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.status === 403) {
+        alert("본인이 작성한 게시글만 삭제할 수 있습니다.");
+      } else {
+        alert("삭제에 실패했습니다.");
       }
-    );
-
-    alert("삭제되었습니다.");
-
-    // 목록 새로 불러오기
-    fetchQuestions();
-
-    // 또는 상세페이지라면
-    // navigate("/questions");
-  } catch (err) {
-    console.error(err);
-
-    if (err.response?.status === 403) {
-      alert("본인이 작성한 게시글만 삭제할 수 있습니다.");
-    } else {
-      alert("삭제에 실패했습니다.");
     }
-  }
-};
+  };
+
   // -----------------------------
   // 초기 로딩
   // -----------------------------
   useEffect(() => {
     fetchQuestions();
+
+    const token = localStorage.getItem("access");
+    setIsLoggedIn(!!token);
   }, []);
 
   return (
@@ -73,18 +97,32 @@ const QuestionList = () => {
         }}
       >
         <h2 style={{ margin: 0 }}>퀴즈 목록</h2>
-        <button
-          onClick={() => navigate("/questions")}
-          style={{
-            padding: "8px 16px",
-            cursor: "pointer",
-            borderRadius: "6px",
-            border: "1px solid #ddd",
-            backgroundColor: "#fff",
-          }}
-        >
-          문제 생성
-        </button>
+
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            onClick={() => navigate("/questions")}
+            style={{
+              padding: "8px 16px",
+              cursor: "pointer",
+            }}
+          >
+            문제 생성
+          </button>
+
+          <button onClick={() => navigate("/profile")}>
+            프로필
+          </button>
+
+          {isLoggedIn ? (
+            <button onClick={logout}>
+              로그아웃
+            </button>
+          ) : (
+            <button onClick={() => navigate("/login")}>
+              로그인
+            </button>
+          )}
+        </div>
       </div>
 
       {questions.length === 0 ? (
@@ -108,6 +146,46 @@ const QuestionList = () => {
           </div>
         ))
       )}
+
+      {/* 페이지 번호 */}
+      <div
+        style={{
+          marginTop: "30px",
+          display: "flex",
+          justifyContent: "center",
+          gap: "5px",
+        }}
+      >
+        <button
+          disabled={page === 1}
+          onClick={() => fetchQuestions(page - 1)}
+        >
+          이전
+        </button>
+
+        {Array.from({ length: totalPages }, (_, i) => (
+          <button
+            key={i + 1}
+            onClick={() => fetchQuestions(i + 1)}
+            style={{
+              fontWeight: page === i + 1 ? "bold" : "normal",
+              backgroundColor: page === i + 1 ? "#0d6efd" : "white",
+              color: page === i + 1 ? "white" : "black",
+              border: "1px solid #ccc",
+              padding: "5px 10px",
+            }}
+          >
+            {i + 1}
+          </button>
+        ))}
+
+        <button
+          disabled={page === totalPages}
+          onClick={() => fetchQuestions(page + 1)}
+        >
+          다음
+        </button>
+      </div>
     </div>
   );
 };
