@@ -1,13 +1,13 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 
 import LoginForm from './components/LoginForm';
+import ProfilePage from './components/ProfilePage';
+import QuestionCreate from './components/QuestionCreate';
+import QuestionEdit from './components/QuestionEdit';
 import QuestionList from "./components/QuestionList";
 import QuestionSolve from "./components/QuestionSolve";
-import ProfilePage from './components/ProfilePage';
 import SignupForm from './components/SignupForm';
-import QuestionCreate from './components/QuestionCreate';
-import reportQuestion from './components/QuestionSolve';
-import { BrowserRouter } from 'react-router-dom';
+import RankingList from "./components/RankingList";
 
 function App() {
   return (
@@ -19,6 +19,8 @@ function App() {
       <Route path="/solve/:id" element={<QuestionSolve />} />
       <Route path="/questions" element={<QuestionCreate />} />
       <Route path="/solve/:id/reports" element={<reportQuestion />} />
+      <Route path="/questions/:id/edit" element={<QuestionEdit />} />
+      <Route path="/rankings" element={<RankingList />} />
     </Routes>
   );
 }

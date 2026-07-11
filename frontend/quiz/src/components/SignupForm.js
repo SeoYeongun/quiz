@@ -22,8 +22,29 @@ const SignupForm = () => {
       });
       navigate('/login'); // 회원가입 성공 시 로그인 페이지로 이동
     } catch (err) {
-      alert(err.response.data.error);
-    }
+
+      const data = err.response?.data;
+
+
+      if (data?.username) {
+
+          alert("중복된 아이디입니다.");
+
+      } 
+      else if (data?.password) {
+
+          alert("비밀번호를 확인해주세요.");
+
+      }
+      else {
+
+          alert("회원가입에 실패했습니다.");
+
+      }
+
+
+      console.log(data);
+  }
   };
 
   return (

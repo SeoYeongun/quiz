@@ -12,6 +12,8 @@ class Question(models.Model):
     title = models.CharField(max_length=200)
 
     question_text = models.TextField()
+    image = models.ImageField(upload_to="question_images/", blank=True, null=True)
+    video = models.FileField(upload_to="question_videos/", blank=True, null=True)
 
     choice1 = models.CharField(max_length=255)
     choice2 = models.CharField(max_length=255)
@@ -34,6 +36,14 @@ class QuestionAttempt(models.Model):
     is_correct = models.BooleanField()
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "question"],
+                name="unique_user_question_attempt"
+            )
+        ]
 
 class Report(models.Model):
     REPORT_TYPES = [
@@ -58,3 +68,4 @@ class Report(models.Model):
 
     class Meta:
         unique_together = ("user", "question")
+

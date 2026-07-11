@@ -1,12 +1,10 @@
-from rest_framework.routers import DefaultRouter
+from django.urls import path
+from .views import RankingAPIView
 
-from .views import RankingViewSet
 
-router = DefaultRouter()
-router.register(
-    '',
-    RankingViewSet,
-    basename='ranking'
-)
-
-urlpatterns = router.urls
+urlpatterns = [
+    path(
+        "",
+        RankingAPIView.as_view()
+    )
+]

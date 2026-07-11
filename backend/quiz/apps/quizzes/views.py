@@ -40,15 +40,34 @@ class QuestionViewSet(viewsets.ModelViewSet):
             return [IsOwnerOrReadOnly()]
 
         return [AllowAny()]
+    
     # 게시글 작성 시 작성자를 자동으로 설정하기 위해 perform_create 메서드를 오버라이드합니다. 이 메서드는 게시글이 생성될 때 호출되며, 현재 요청한 사용자를 작성자로 설정합니다.
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        print(request.data)
+
+        if not serializer.is_valid():
+            print(serializer.errors)
+            return Response(serializer.errors, status=400)
+
+        self.perform_create(serializer)
+        return Response(serializer.data)
+
+    #-----------------------------
+    # Serializer Context
+    #-----------------------------
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context["request"] = self.request
         return context
     
+    #-----------------------------
+    # 좋아요 기능
+    #-----------------------------
     @action(detail=True, methods=["get", "post"], permission_classes=[IsAuthenticated])
     def like(self, request, pk=None):
         question = self.get_object()
@@ -66,9 +85,13 @@ class QuestionViewSet(viewsets.ModelViewSet):
         return Response({"liked": True})
     
     # -----------------------------
-    # 정답 제출 (비로그인 허용)
+    # 정답 제출
     # -----------------------------
-    @action(detail=True, methods=["post"], permission_classes=[AllowAny])
+    @action(
+        detail=True,
+        methods=["post"],
+        permission_classes=[IsAuthenticated]
+    )
     def answer(self, request, pk=None):
 
         question = self.get_object()
@@ -77,20 +100,64 @@ class QuestionViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         selected = serializer.validated_data["selected_answer"]
-        is_correct = question.correct_answer == selected
 
-        user = request.user if request.user.is_authenticated else None
-
-        attempt = QuestionAttempt.objects.create(
-            user=user,
-            question=question,
-            selected_answer=selected,
-            is_correct=is_correct,
+        is_correct = (
+            question.correct_answer == selected
         )
 
+
+        # 본인이 만든 문제인지 확인
+        is_owner = (
+            question.user == request.user
+        )
+
+
+        # 본인 문제는 랭킹 기록 제외
+        if is_owner:
+
+            return Response(
+                {
+                    "question": question.id,
+                    "selected_answer": selected,
+                    "is_correct": is_correct,
+                    "ranking_saved": False,
+                    "message": "본인이 만든 문제는 랭킹에 반영되지 않습니다."
+                },
+                status=status.HTTP_200_OK
+            )
+
+
+        # 이미 푼 문제인지 확인
+        existing_attempt = QuestionAttempt.objects.filter(
+            user=request.user,
+            question=question
+        ).first()
+
+
+        # 최초 풀이만 저장
+        if existing_attempt is None:
+
+            attempt = QuestionAttempt.objects.create(
+                user=request.user,
+                question=question,
+                selected_answer=selected,
+                is_correct=is_correct,
+            )
+
+        else:
+            attempt = existing_attempt
+
+
+        # 현재 제출 결과 반환
         return Response(
-            QuestionAttemptSerializer(attempt).data,
-            status=status.HTTP_200_OK,
+            {
+                "id": attempt.id,
+                "question": question.id,
+                "selected_answer": selected,
+                "is_correct": is_correct,
+                "ranking_saved": existing_attempt is None,
+            },
+            status=status.HTTP_200_OK
         )
 
     # -----------------------------
@@ -164,7 +231,9 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=400)
     
-    
+    #-----------------------------
+    # 내가 작성한 문제 조회
+    #-----------------------------
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def my_questions(self, request):
         questions = Question.objects.filter(

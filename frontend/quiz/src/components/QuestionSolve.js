@@ -14,6 +14,8 @@ const QuizDetail = () => {
   const [selected, setSelected] = useState(null);
   const [result, setResult] = useState(null);
 
+  const [showComments, setShowComments] = useState(false);
+
   // -----------------------------
   // token
   // -----------------------------
@@ -267,6 +269,38 @@ const QuizDetail = () => {
       <h2>{question.title}</h2>
       <p>{question.question_text}</p>
 
+      {/* 이미지 */}
+      {question.image && (
+        <div style={{ margin: "20px 0" }}>
+          <img
+            src={question.image}
+            alt="문제 이미지"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "500px",
+              borderRadius: "8px",
+            }}
+          />
+        </div>
+      )}
+
+      {/* 비디오 */}
+      {question.video && (
+        <div style={{ margin: "20px 0" }}>
+          <video
+            controls
+            style={{
+              width: "100%",
+              maxHeight: "500px",
+              borderRadius: "8px",
+            }}
+          >
+            <source src={question.video} />
+            브라우저가 video 태그를 지원하지 않습니다.
+          </video>
+        </div>
+      )}
+
       {/* 선택지 */}
       <div>
         {[1, 2, 3, 4].map((num) => (
@@ -286,9 +320,28 @@ const QuizDetail = () => {
 
       <button onClick={submitAnswer}>정답 제출</button>
 
-      <button onClick={() => deleteQuestion(question.id)}>
-        게시글 삭제
-      </button>
+      {question.is_owner && (
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            marginTop: "10px",
+            marginBottom: "10px",
+          }}
+        >
+          <button
+            onClick={() => navigate(`/questions/${question.id}/edit`)}
+          >
+            ✏️ 편집하기
+          </button>
+
+          <button
+            onClick={() => deleteQuestion(question.id)}
+          >
+            🗑 게시글 삭제
+          </button>
+        </div>
+      )}
 
       {/* 결과 */}
       {result && (
@@ -297,7 +350,7 @@ const QuizDetail = () => {
             <p style={{ color: "green" }}>정답!</p>
           ) : (
             <p style={{ color: "red" }}>
-              틀림 (정답: {result.selected_answer})
+              틀림!
             </p>
           )}
         </div>
@@ -318,24 +371,47 @@ const QuizDetail = () => {
       </button>
       <hr />
 
-      {/* 댓글 작성 */}
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="댓글 입력"
-      />
+      <button
+        onClick={() => setShowComments(!showComments)}
+        style={{
+          marginTop: "20px",
+          marginBottom: "15px",
+        }}
+      >
+        {showComments ? "댓글 가리기 ▲" : `댓글 보기 (${comments.length}) ▼`}
+      </button>
 
-      <button onClick={submitComment}>댓글 등록</button>
+{showComments && (
+  <>
+    <hr />
 
-      <hr />
+    {/* 댓글 작성 */}
+    <textarea
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      placeholder="댓글 입력"
+    />
 
-      {/* 댓글 목록 */}
-      {comments.map((c) => (
+    <button onClick={submitComment}>댓글 등록</button>
+
+    <hr />
+
+    {/* 댓글 목록 */}
+    {comments.length === 0 ? (
+      <p>아직 댓글이 없습니다.</p>
+    ) : (
+      comments.map((c) => (
         <div key={c.id} style={{ marginBottom: "15px" }}>
           <b>{c.author}</b>
           <p>{c.text}</p>
 
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+            }}
+          >
             <button onClick={() => likeComment(c.id)}>
               {c.liked ? "❤️" : "🤍"} {c.like_count}
             </button>
@@ -345,7 +421,10 @@ const QuizDetail = () => {
             </button>
           </div>
         </div>
-      ))}
+      ))
+    )}
+  </>
+)}
     </div>
   );
 };

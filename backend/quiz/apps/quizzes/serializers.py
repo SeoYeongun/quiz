@@ -7,13 +7,17 @@ from quiz.apps.likes.models import Like
 class QuestionSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
     liked = serializers.SerializerMethodField()
-
+    is_owner = serializers.SerializerMethodField()
+    user = serializers.ReadOnlyField(source="user.id")
     class Meta:
         model = Question
         fields = [
             "id",
+            "user",
             "title",
             "question_text",
+            "image",
+            "video",
             "choice1",
             "choice2",
             "choice3",
@@ -22,10 +26,21 @@ class QuestionSerializer(serializers.ModelSerializer):
             "created_at",
             "like_count",
             "liked",
+            "is_owner",
         ]
+
+    def get_is_owner(self, obj):
+        request = self.context.get("request")
+
+        if request is None or request.user.is_anonymous:
+            return False
+
+        return obj.user == request.user 
+    
 
     def get_like_count(self, obj):
         return Like.objects.filter(quiz=obj).count()
+
 
     def get_liked(self, obj):
         request = self.context.get("request")

@@ -10,6 +10,7 @@ const QuestionList = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+
   // -----------------------------
   // 문제 리스트 가져오기
   // -----------------------------
@@ -22,6 +23,7 @@ const QuestionList = () => {
       setQuestions(res.data.results);
       setPage(pageNumber);
       setTotalPages(Math.ceil(res.data.count / 20));
+
     } catch (err) {
       console.log("Question list error:", err);
 
@@ -31,10 +33,12 @@ const QuestionList = () => {
     }
   };
 
+
   // -----------------------------
   // 로그아웃
   // -----------------------------
   const logout = () => {
+
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
 
@@ -42,52 +46,30 @@ const QuestionList = () => {
 
     alert("로그아웃되었습니다.");
 
-    navigate("/login");
+    navigate("/quizzes");
   };
 
-  // -----------------------------
-  // 게시글 삭제
-  // -----------------------------
-  const deleteQuestion = async (id) => {
-    const ok = window.confirm("정말 삭제하시겠습니까?");
-    if (!ok) return;
-
-    try {
-      await axios.delete(
-        `http://localhost:8000/api/quizzes/questions/${id}/`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access")}`,
-          },
-        }
-      );
-
-      alert("삭제되었습니다.");
-
-      fetchQuestions(page);
-    } catch (err) {
-      console.error(err);
-
-      if (err.response?.status === 403) {
-        alert("본인이 작성한 게시글만 삭제할 수 있습니다.");
-      } else {
-        alert("삭제에 실패했습니다.");
-      }
-    }
-  };
 
   // -----------------------------
   // 초기 로딩
   // -----------------------------
   useEffect(() => {
+
     fetchQuestions();
 
     const token = localStorage.getItem("access");
+
     setIsLoggedIn(!!token);
+
   }, []);
 
+
+
   return (
+
     <div style={{ width: "700px", margin: "30px auto" }}>
+
+
       <div
         style={{
           display: "flex",
@@ -96,98 +78,245 @@ const QuestionList = () => {
           marginBottom: "20px",
         }}
       >
-        <h2 style={{ margin: 0 }}>퀴즈 목록</h2>
+
+        <h2 style={{ margin: 0 }}>
+          퀴즈 목록
+        </h2>
+
+
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <button
-            onClick={() => navigate("/questions")}
-            style={{
-              padding: "8px 16px",
-              cursor: "pointer",
-            }}
-          >
-            문제 생성
-          </button>
 
-          <button onClick={() => navigate("/profile")}>
-            프로필
-          </button>
 
-          {isLoggedIn ? (
-            <button onClick={logout}>
-              로그아웃
-            </button>
-          ) : (
-            <button onClick={() => navigate("/login")}>
-              로그인
-            </button>
+          {/* 비로그인 상태 */}
+          {!isLoggedIn && (
+
+            <>
+
+              <button
+                onClick={() => navigate("/signup")}
+              >
+                회원가입
+              </button>
+
+
+              <button
+                onClick={() => navigate("/login")}
+              >
+                로그인
+              </button>
+
+            </>
+
           )}
+
+
+
+          {/* 랭킹 - 로그인 여부 상관없이 표시 */}
+          <button
+            onClick={() => navigate("/rankings")}
+          >
+            🏆 랭킹
+          </button>
+
+
+
+
+          {/* 로그인 상태 */}
+          {isLoggedIn && (
+
+            <>
+
+              <button
+                onClick={() => navigate("/questions")}
+              >
+                문제 만들기
+              </button>
+
+
+              <button
+                onClick={() => navigate("/profile")}
+              >
+                👤 프로필
+              </button>
+
+
+              <button
+                onClick={logout}
+              >
+                🚪 로그아웃
+              </button>
+
+
+            </>
+
+          )}
+
+
         </div>
+
+
       </div>
+
+
+
+
+
+      {/* 문제 목록 */}
 
       {questions.length === 0 ? (
-        <p>문제가 없습니다.</p>
+
+        <p>
+          문제가 없습니다.
+        </p>
+
+
       ) : (
+
+
         questions.map((q) => (
+
+
           <div
+
             key={q.id}
+
             onClick={() => navigate(`/solve/${q.id}`)}
+
             style={{
+
               padding: "15px",
+
               border: "1px solid #ddd",
+
               marginBottom: "10px",
+
               cursor: "pointer",
+
               borderRadius: "6px",
+
             }}
+
           >
-            <h3>{q.title}</h3>
-            <p>{q.question_text}</p>
-            <p>❤️ {q.like_count} likes</p>
+
+            <h3>
+              {q.title}
+            </h3>
+
+
+            <p>
+              {q.question_text}
+            </p>
+
+
+            <p>
+              ❤️ {q.like_count} likes
+            </p>
+
+
           </div>
+
+
         ))
+
       )}
 
+
+
+
+
       {/* 페이지 번호 */}
+
       <div
+
         style={{
+
           marginTop: "30px",
+
           display: "flex",
+
           justifyContent: "center",
+
           gap: "5px",
+
         }}
+
       >
+
+
         <button
+
           disabled={page === 1}
+
           onClick={() => fetchQuestions(page - 1)}
+
         >
+
           이전
+
         </button>
+
+
+
 
         {Array.from({ length: totalPages }, (_, i) => (
+
+
           <button
+
             key={i + 1}
+
             onClick={() => fetchQuestions(i + 1)}
+
             style={{
+
               fontWeight: page === i + 1 ? "bold" : "normal",
-              backgroundColor: page === i + 1 ? "#0d6efd" : "white",
-              color: page === i + 1 ? "white" : "black",
+
+              backgroundColor:
+                page === i + 1 ? "#0d6efd" : "white",
+
+              color:
+                page === i + 1 ? "white" : "black",
+
               border: "1px solid #ccc",
+
               padding: "5px 10px",
+
             }}
+
           >
+
             {i + 1}
+
           </button>
+
+
         ))}
 
+
+
+
         <button
+
           disabled={page === totalPages}
+
           onClick={() => fetchQuestions(page + 1)}
+
         >
+
           다음
+
         </button>
+
+
       </div>
+
+
     </div>
+
   );
+
 };
+
 
 export default QuestionList;
