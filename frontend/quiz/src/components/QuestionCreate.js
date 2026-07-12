@@ -9,7 +9,7 @@ const Questions = () => {
     title: "",
     question_text: "",
     image: null,
-    video: null,
+    video_url: "",
     choice1: "",
     choice2: "",
     choice3: "",
@@ -24,7 +24,7 @@ const Questions = () => {
     setFormData((prev) => ({
       ...prev,
       [name]:
-        name === "image" || name === "video"
+        name === "image"
           ? files[0]
           : name === "correct_answer"
           ? Number(value)
@@ -52,8 +52,8 @@ const Questions = () => {
       data.append("image", formData.image);
     }
 
-    if (formData.video) {
-      data.append("video", formData.video);
+    if (formData.video_url.trim() !== "") {
+      data.append("video_url", formData.video_url);
     }
 
     try {
@@ -120,12 +120,28 @@ const Questions = () => {
         />
 
         <input
-          type="file"
-          name="video"
-          accept="video/*"
+          type="url"
+          name="video_url"
+          placeholder="유튜브 URL (선택)"
+          value={formData.video_url}
           onChange={handleChange}
           style={styles.input}
         />
+
+        <p
+          style={{
+            color: "#666",
+            fontSize: "14px",
+            marginTop: "-10px",
+            marginBottom: "15px",
+          }}
+        >
+          지원 형식:
+          <br />
+          • https://youtu.be/...
+          <br />
+          • https://www.youtube.com/watch?v=...
+        </p>
 
         <input
           type="text"

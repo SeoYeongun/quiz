@@ -9,6 +9,7 @@ const QuestionList = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [search, setSearch] = useState("");
 
 
   // -----------------------------
@@ -31,6 +32,68 @@ const QuestionList = () => {
         console.log(err.response.data);
       }
     }
+  };
+
+  const filteredQuestions = questions.filter((q) => {
+
+    // 검색어 공백 제거
+    const keyword = search
+      .replace(/\s/g, "")
+      .toLowerCase();
+
+
+    // 제목 공백 제거
+    const title = q.title
+      .replace(/\s/g, "")
+      .toLowerCase();
+
+
+    // 작성자 공백 제거
+    const author = q.author
+      .replace(/\s/g, "")
+      .toLowerCase();
+
+
+    return (
+      title.includes(keyword) ||
+      author.includes(keyword)
+    );
+
+  });
+
+  const getYoutubeThumbnail = (url) => {
+
+    if (!url) return null;
+
+
+    let videoId = null;
+
+
+    // youtube.com/watch?v=
+    if (url.includes("youtube.com/watch")) {
+
+      videoId = new URL(url).searchParams.get("v");
+
+    }
+
+
+    // youtu.be/
+    else if (url.includes("youtu.be")) {
+
+      videoId = url.split("/").pop();
+
+    }
+
+
+    if (videoId) {
+
+      return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+    }
+
+
+    return null;
+
   };
 
 
@@ -114,9 +177,15 @@ const QuestionList = () => {
 
           {/* 랭킹 - 로그인 여부 상관없이 표시 */}
           <button
-            onClick={() => navigate("/rankings")}
+            onClick={() => navigate("/rankings/users")}
           >
-            🏆 랭킹
+            🏆 유저 랭킹
+          </button>
+
+          <button
+            onClick={() => navigate("/rankings/posts")}
+          >
+            🏆 게시글 랭킹
           </button>
 
 
@@ -154,17 +223,30 @@ const QuestionList = () => {
 
 
         </div>
-
-
       </div>
 
+      <input
+        type="text"
+        placeholder="제목 또는 작성자 검색"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginTop: "15px",
+          marginBottom: "20px",
+          fontSize: "16px",
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+        }}
+        />
 
 
 
 
       {/* 문제 목록 */}
 
-      {questions.length === 0 ? (
+      {filteredQuestions.length === 0 ? (
 
         <p>
           문제가 없습니다.
@@ -174,49 +256,94 @@ const QuestionList = () => {
       ) : (
 
 
-        questions.map((q) => (
+        filteredQuestions.map((q) => (
 
 
-          <div
-
+          <p
             key={q.id}
-
             onClick={() => navigate(`/solve/${q.id}`)}
-
             style={{
-
-              padding: "15px",
-
-              border: "1px solid #ddd",
-
-              marginBottom: "10px",
-
+              display: "flex",
+              alignItems: "center",
+              gap: "15px",
+              padding: "12px",
+              borderBottom: "1px solid #ddd",
               cursor: "pointer",
-
-              borderRadius: "6px",
-
             }}
-
           >
 
-            <h3>
-              {q.title}
-            </h3>
+            {/* 썸네일 */}
+            <div
+              style={{
+                width: "80px",
+                height: "60px",
+                flexShrink: 0,
+                overflow: "hidden",
+                borderRadius: "8px",
+                backgroundColor: "#f3f3f3",
+              }}
+            >
 
+              {q.image ? (
 
-            <p>
-              {q.question_text}
-            </p>
+                <img
+                  src={q.image}
+                  alt="thumbnail"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
 
+              ) : getYoutubeThumbnail(q.video_url) ? (
 
-            <p>
-              ❤️ {q.like_count} likes
-            </p>
+                <img
+                  src={getYoutubeThumbnail(q.video_url)}
+                  alt="youtube thumbnail"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
 
+              ) : q.video ? (
+                <video
+                  src={q.video}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <div>
+                  없음
+                </div>
+              )}
+            </div>
 
-          </div>
+            <span style={{ flex: 1 }}>
+              title: {q.title}
+            </span>
 
+            <span>
+              작성자: {q.author}
+            </span>
 
+            <span>
+              ❤️ {q.like_count}
+            </span>
+
+            <span>
+              💬 {q.comment_count}
+            </span>
+
+            <span>
+              📅 {new Date(q.created_at).toLocaleDateString()}
+            </span>
+          </p>
         ))
 
       )}

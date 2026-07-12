@@ -5,8 +5,13 @@ from quiz.apps.likes.models import Like
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(
+        source="user.username",
+        read_only=True
+    )
     like_count = serializers.SerializerMethodField()
     liked = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
     user = serializers.ReadOnlyField(source="user.id")
     class Meta:
@@ -18,15 +23,21 @@ class QuestionSerializer(serializers.ModelSerializer):
             "question_text",
             "image",
             "video",
+            "video_url",
+
             "choice1",
             "choice2",
             "choice3",
             "choice4",
+
             "correct_answer",
-            "created_at",
+
+            "author",
+            "comment_count",
             "like_count",
             "liked",
             "is_owner",
+            "created_at",
         ]
 
     def get_is_owner(self, obj):
@@ -52,6 +63,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             quiz=obj,
             user=request.user
         ).exists()
+    
+    def get_comment_count(self, obj):
+        return obj.comments.count()
 
 class AnswerSerializer(serializers.Serializer):
     selected_answer = serializers.IntegerField()

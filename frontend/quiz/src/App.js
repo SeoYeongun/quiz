@@ -7,7 +7,8 @@ import QuestionEdit from './components/QuestionEdit';
 import QuestionList from "./components/QuestionList";
 import QuestionSolve from "./components/QuestionSolve";
 import SignupForm from './components/SignupForm';
-import RankingList from "./components/RankingList";
+import UserRanking from "./components/UserRanking";
+import PostRanking from "./components/PostRanking";
 
 function App() {
   return (
@@ -20,7 +21,8 @@ function App() {
       <Route path="/questions" element={<QuestionCreate />} />
       <Route path="/solve/:id/reports" element={<reportQuestion />} />
       <Route path="/questions/:id/edit" element={<QuestionEdit />} />
-      <Route path="/rankings" element={<RankingList />} />
+      <Route path="/rankings/users" element={<UserRanking />} />
+      <Route path="/rankings/posts" element={<PostRanking />} />
     </Routes>
   );
 }

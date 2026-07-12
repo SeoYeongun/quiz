@@ -14,6 +14,10 @@ class Question(models.Model):
     question_text = models.TextField()
     image = models.ImageField(upload_to="question_images/", blank=True, null=True)
     video = models.FileField(upload_to="question_videos/", blank=True, null=True)
+    video_url = models.URLField(
+        blank=True,
+        null=True
+    )
 
     choice1 = models.CharField(max_length=255)
     choice2 = models.CharField(max_length=255)

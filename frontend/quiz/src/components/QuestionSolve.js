@@ -23,6 +23,24 @@ const QuizDetail = () => {
     return localStorage.getItem("access");
   };
 
+  const getYoutubeEmbedUrl = (url) => {
+    if (!url) return null;
+
+    // https://youtu.be/xxxx
+    if (url.includes("youtu.be/")) {
+      const videoId = url.split("youtu.be/")[1].split("?")[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    // https://www.youtube.com/watch?v=xxxx
+    if (url.includes("watch?v=")) {
+      const videoId = url.split("watch?v=")[1].split("&")[0];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    return null;
+  };
+
   // -----------------------------
   // 문제 가져오기
   // -----------------------------
@@ -284,20 +302,21 @@ const QuizDetail = () => {
         </div>
       )}
 
-      {/* 비디오 */}
-      {question.video && (
+      {/* 유튜브 영상 */}
+      {question.video_url && (
         <div style={{ margin: "20px 0" }}>
-          <video
-            controls
+          <iframe
+            width="100%"
+            height="450"
+            src={getYoutubeEmbedUrl(question.video_url)}
+            title="YouTube video"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
             style={{
-              width: "100%",
-              maxHeight: "500px",
               borderRadius: "8px",
             }}
-          >
-            <source src={question.video} />
-            브라우저가 video 태그를 지원하지 않습니다.
-          </video>
+          />
         </div>
       )}
 
