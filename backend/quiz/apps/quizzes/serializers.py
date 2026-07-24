@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Question, QuestionAttempt, Report
+from .models import Question, QuestionAttempt, Report, ShortQuestion
 from quiz.apps.likes.models import Like
 
 
@@ -66,6 +66,34 @@ class QuestionSerializer(serializers.ModelSerializer):
     
     def get_comment_count(self, obj):
         return obj.comments.count()
+
+class ShortQuestionSerializer(serializers.ModelSerializer):
+
+    title = serializers.CharField(source="question.title")
+    question_text = serializers.CharField(source="question.question_text")
+
+    image = serializers.ImageField(source="question.image")
+
+    choice1 = serializers.CharField(source="question.choice1")
+    choice2 = serializers.CharField(source="question.choice2")
+    choice3 = serializers.CharField(source="question.choice3")
+    choice4 = serializers.CharField(source="question.choice4")
+
+    author = serializers.CharField(source="question.author.username")
+
+    class Meta:
+        model = ShortQuestion
+        fields = [
+            "id",
+            "title",
+            "question_text",
+            "image",
+            "choice1",
+            "choice2",
+            "choice3",
+            "choice4",
+            "author",
+        ]
 
 class AnswerSerializer(serializers.Serializer):
     selected_answer = serializers.IntegerField()

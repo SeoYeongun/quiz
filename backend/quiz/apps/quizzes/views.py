@@ -19,6 +19,17 @@ class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all().order_by("-id")
     serializer_class = QuestionSerializer
 
+    @action(detail=False, methods=["get"])
+    def shorts(self, request):
+        queryset = Question.objects.all().order_by("-created_at")
+
+        serializer = self.get_serializer(
+            queryset,
+            many=True
+        )
+
+        return Response(serializer.data)
+    
     # -----------------------------
     # 권한 제어 (핵심)
     # -----------------------------
@@ -45,6 +56,9 @@ class QuestionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    #-----------------------------
+    # 게시글 생성 시 요청 데이터 출력
+    #-----------------------------
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
@@ -242,3 +256,4 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(questions, many=True)
         return Response(serializer.data)
+

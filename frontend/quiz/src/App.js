@@ -9,6 +9,7 @@ import QuestionSolve from "./components/QuestionSolve";
 import SignupForm from './components/SignupForm';
 import UserRanking from "./components/UserRanking";
 import PostRanking from "./components/PostRanking";
+import ShortsPage from "./components/ShortsPage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
       <Route path="/questions/:id/edit" element={<QuestionEdit />} />
       <Route path="/rankings/users" element={<UserRanking />} />
       <Route path="/rankings/posts" element={<PostRanking />} />
+      <Route path="/shorts" element={<ShortsPage />} />
     </Routes>
   );
 }

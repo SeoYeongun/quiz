@@ -173,7 +173,11 @@ const QuestionList = () => {
 
           )}
 
-
+          <button
+            onClick={() => navigate("/shorts")}
+          >
+            🔥 숏츠
+          </button>
 
           {/* 랭킹 - 로그인 여부 상관없이 표시 */}
           <button
