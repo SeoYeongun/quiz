@@ -19,6 +19,9 @@ class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all().order_by("-id")
     serializer_class = QuestionSerializer
 
+    # -----------------------------
+    # Shorts
+    # -----------------------------
     @action(detail=False, methods=["get"])
     def shorts(self, request):
         queryset = Question.objects.all().order_by("-created_at")
